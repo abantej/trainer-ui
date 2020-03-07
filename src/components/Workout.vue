@@ -2,8 +2,13 @@
   <div class="hello">
     <input type="text" class="workout-input" placeholder="What needs to be done"
            v-model="newWorkout" @keyup.enter="addWorkout">
-    <div v-for="workout in workouts" :key="workout.id" class="workout-item">
-      {{ workout.title }}
+    <div v-for="(workout, index) in workouts" :key="workout.id" class="workout-item">
+      <div>
+        {{ workout.title }}
+      </div>
+      <div class="remove-item" @click="removeWorkout(index)">
+        &times;
+      </div>
     </div>
   </div>
 </template>
@@ -36,6 +41,9 @@ export default Vue.extend({
   },
   methods: {
     addWorkout() {
+      if (this.newWorkout.trim().length === 0) {
+        return;
+      }
       this.workouts.push({
         id: this.idForWorkout,
         title: this.newWorkout,
@@ -43,6 +51,9 @@ export default Vue.extend({
       });
       this.newWorkout = '';
       this.idForWorkout += 1;
+    },
+    removeWorkout(index) {
+      this.workouts.splice(index, 1);
     },
   },
 });
@@ -57,6 +68,21 @@ export default Vue.extend({
 
     &:focus {
       outline: 0;
+    }
+  }
+
+  .workout-item {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .remove-item {
+    cursor: pointer;
+    margin-left: 14px;
+    &:hover {
+      color: black;
     }
   }
 </style>
