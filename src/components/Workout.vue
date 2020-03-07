@@ -2,11 +2,15 @@
   <div class="hello">
     <input type="text" class="workout-input" placeholder="What needs to be done"
            v-model="newWorkout" @keyup.enter="addWorkout">
-    <div v-for="(workout, index) in workouts" :key="workout.id" class="workout-item">
+    <transition-group name="fade" enter-active-class="animated fadeInUp"
+                      leave-active-class="animated fadeOutDown">
+    <div v-for="(workout, index) in workoutsFiltered" :key="workout.id" class="workout-item">
       <div class="workout-item-left">
+        <input type="checkbox" v-model="workout.completed">
         <div v-if="!workout.editing"
              @dblclick="editWorkout(index)"
-             class="workout-item-label">
+             class="workout-item-label"
+             :class="{ completed : workout.completed }">
           {{ workout.title }}
         </div>
         <input v-else class="workout-item-edit"
@@ -19,6 +23,38 @@
       </div>
       <div class="remove-item" @click="removeWorkout(index)">
         &times;
+      </div>
+    </div>
+    </transition-group>
+    <div class="extra-container">
+      <div>
+        <label>
+          <input type="checkbox" :checked="!anyRemaining"
+          @change="checkAllWorkouts">
+          Check All
+        </label>
+      </div>
+      <div>{{ remaining }} items left</div>
+    </div>
+
+    <div class="extra-container">
+      <div>
+        <button :class="{ active: filter == 'all'}" @click="filter = 'all'">
+          All
+        </button>
+        <button :class="{ active: filter == 'active'}" @click="filter = 'active'">
+          Active
+        </button>
+        <button :class="{ active: filter == 'completed'}" @click="filter = 'completed'">
+          Completed
+        </button>
+      </div>
+      <div>
+        <transition name="fade">
+          <button v-if="showClearCompletedButton" @click="clearCompleted">
+            Clear Completed
+          </button>
+        </transition>
       </div>
     </div>
   </div>
@@ -37,6 +73,7 @@ export default Vue.extend({
       newWorkout: '',
       beforeEditCache: '',
       idForWorkout: 3,
+      filter: 'all',
       workouts: [
         {
           id: 1,
@@ -52,6 +89,26 @@ export default Vue.extend({
         },
       ],
     };
+  },
+  computed: {
+    remaining() {
+      return this.workouts.filter((workout) => !workout.completed).length;
+    },
+    anyRemaining() {
+      return this.remaining !== 0;
+    },
+    workoutsFiltered() {
+      if (this.filter === 'active') {
+        return this.workouts.filter((workout) => !workout.completed);
+      }
+      if (this.filter === 'completed') {
+        return this.workouts.filter((workout) => workout.completed);
+      }
+      return this.workouts;
+    },
+    showClearCompletedButton() {
+      return this.workouts.filter((workout) => workout.completed).length > 0;
+    },
   },
   directives: {
     focus: {
@@ -78,20 +135,32 @@ export default Vue.extend({
       this.workouts[index].editing = true;
     },
     doneEdit(index) {
+      if (this.workouts[index].title === '') {
+        this.workouts[index].title = this.beforeEditCache;
+      }
+      this.workouts[index].editing = false;
+    },
+    cancelEdit(index) {
+      this.workouts[index].title = this.beforeEditCache;
       this.workouts[index].editing = false;
     },
     removeWorkout(index) {
       this.workouts.splice(index, 1);
     },
-    cancelEdit(index) {
-      this.workouts[index].title = this.beforeEditCache;
-      this.workouts[index].editing = false;
+    checkAllWorkouts() {
+      // eslint-disable-next-line no-return-assign,no-param-reassign,no-restricted-globals
+      this.workouts.forEach((workout) => workout.completed = event.target.checked);
+    },
+    clearCompleted() {
+      this.workouts = this.workouts.filter((workout) => !workout.completed);
     },
   },
 });
 </script>
 
 <style lang="scss">
+  @import url("https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css");
+
   .workout-input {
     width: 100%;
     padding: 10px 18px;
@@ -108,6 +177,7 @@ export default Vue.extend({
     display: flex;
     align-items: center;
     justify-content: space-between;
+    animation-duration: 0.3s;
   }
 
   .remove-item {
@@ -141,5 +211,46 @@ export default Vue.extend({
     &:focus {
       outline: none;
     }
+  }
+
+  .completed {
+    text-decoration: line-through;
+    color: grey;
+  }
+
+  .extra-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 16px;
+    border-top: 1px solid lightgrey;
+    padding-top: 14px;
+    margin-bottom: 14px;
+  }
+
+  button {
+    font-size: 14px;
+    background-color: white;
+    appearance: none;
+
+    &:hover {
+      background: lightgreen;
+    }
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  .active {
+    background: lightgreen;
+  }
+
+  .fade-enter-active, .fade-leave-active {
+    transition: opacity .5s;
+  }
+
+  .fade-enter, .fade-leave-to {
+    opacity: 0;
   }
 </style>
