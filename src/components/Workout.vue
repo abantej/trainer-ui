@@ -4,11 +4,12 @@
            v-model="newWorkout" @keyup.enter="addWorkout">
     <transition-group name="fade" enter-active-class="animated fadeInUp"
                       leave-active-class="animated fadeOutDown">
-    <div v-for="(workout, index) in workoutsFiltered" :key="workout.id" class="workout-item">
+    <div v-for="workout in workoutsFiltered" :key="workout.id" class="workout-item">
       <div class="workout-item-left">
         <input type="checkbox" v-model="workout.completed">
+        <label>{{ workout.id }}</label>
         <div v-if="!workout.editing"
-             @dblclick="editWorkout(index)"
+             @dblclick="editWorkout(workout)"
              class="workout-item-label"
              :class="{ completed : workout.completed }">
           {{ workout.title }}
@@ -16,12 +17,12 @@
         <input v-else class="workout-item-edit"
                type="text"
                v-model="workout.title"
-               @blur="doneEdit(index)"
-               @keyup.enter="doneEdit(index)"
-               @keyup.esc="cancelEdit(index)"
+               @blur="doneEdit(workout)"
+               @keyup.enter="doneEdit(workout)"
+               @keyup.esc="cancelEdit(workout)"
                v-focus>
       </div>
-      <div class="remove-item" @click="removeWorkout(index)">
+      <div class="remove-item" @click="removeWorkout(workout)">
         &times;
       </div>
     </div>
@@ -62,6 +63,9 @@
 
 <script>
 import Vue from 'vue';
+import axios from 'axios';
+
+const baseUrl = 'http://localhost:3000/workouts';
 
 export default Vue.extend({
   name: 'Workout',
@@ -72,23 +76,17 @@ export default Vue.extend({
     return {
       newWorkout: '',
       beforeEditCache: '',
-      idForWorkout: 3,
       filter: 'all',
-      workouts: [
-        {
-          id: 1,
-          title: 'Pull ups',
-          completed: false,
-          editing: false,
-        },
-        {
-          id: 2,
-          title: 'Push ups',
-          completed: false,
-          editing: false,
-        },
-      ],
+      workouts: [],
     };
+  },
+  async created() {
+    try {
+      const res = await axios.get(baseUrl);
+      this.workouts = res.data;
+    } catch (e) {
+      console.error(e);
+    }
   },
   computed: {
     remaining() {
@@ -118,41 +116,58 @@ export default Vue.extend({
     },
   },
   methods: {
-    addWorkout() {
+    async addWorkout() {
       if (this.newWorkout.trim().length === 0) {
         return;
       }
-      this.workouts.push({
-        id: this.idForWorkout,
+      const res = await axios.post(baseUrl, {
         title: this.newWorkout,
         completed: false,
+        editing: false,
       });
+      this.workouts = [...this.workouts, res.data];
       this.newWorkout = '';
-      this.idForWorkout += 1;
     },
-    editWorkout(index) {
-      this.beforeEditCache = this.workouts[index].title;
-      this.workouts[index].editing = true;
+    async editWorkout(pWorkout) {
+      const workout = pWorkout;
+      this.beforeEditCache = workout.title;
+      // eslint-disable-next-line no-param-reassign
+      workout.editing = true;
+      const res = await axios.put(baseUrl, workout);
+      this.workouts = [...this.workouts, res.data];
     },
-    doneEdit(index) {
-      if (this.workouts[index].title === '') {
-        this.workouts[index].title = this.beforeEditCache;
+    async doneEdit(pWorkout) {
+      const workout = pWorkout;
+      if (workout.title === '') {
+        workout.title = this.beforeEditCache;
       }
-      this.workouts[index].editing = false;
+      workout.editing = false;
+      const res = await axios.put(baseUrl, workout);
+      this.workouts = [...this.workouts, res.data];
     },
-    cancelEdit(index) {
-      this.workouts[index].title = this.beforeEditCache;
-      this.workouts[index].editing = false;
+    async cancelEdit(pWorkout) {
+      const workout = pWorkout;
+      workout.title = this.beforeEditCache;
+      workout.editing = false;
+      const res = await axios.put(baseUrl, workout);
+      this.workouts = [...this.workouts, res.data];
     },
-    removeWorkout(index) {
-      this.workouts.splice(index, 1);
+    async removeWorkout(pWorkout) {
+      const workout = pWorkout;
+      this.workouts = this.workouts.filter((w) => w !== workout);
+      const res = await axios.delete(`${baseUrl}/${workout.id}`);
+      this.workouts = [...this.workouts, res.data];
     },
-    checkAllWorkouts() {
+    async checkAllWorkouts() {
       // eslint-disable-next-line no-return-assign,no-param-reassign,no-restricted-globals
       this.workouts.forEach((workout) => workout.completed = event.target.checked);
+      const res = await axios.put(baseUrl, this.workouts);
+      this.workouts = [...this.workouts, res.data];
     },
-    clearCompleted() {
+    async clearCompleted() {
       this.workouts = this.workouts.filter((workout) => !workout.completed);
+      const res = await axios.put(baseUrl, this.workouts);
+      this.workouts = [...this.workouts, res.data];
     },
   },
 });
@@ -194,7 +209,7 @@ export default Vue.extend({
   }
 
   .workout-item-label {
-    padding: 18px;
+    padding: 5px 5px 5px 0px;
     border: 1px solid white;
     margin-left: 12px;
   }
