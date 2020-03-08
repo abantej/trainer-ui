@@ -1,3 +1,34 @@
 {
-  "workouts": []
+  "workouts": [
+    {
+      "id": 0,
+      "title": "Pull ups",
+      "completed": false,
+      "editing": false
+    },
+    {
+      "id": 1,
+      "title": "Push ups",
+      "completed": false,
+      "editing": false
+    },
+    {
+      "id": 2,
+      "title": "Squats",
+      "completed": false,
+      "editing": false
+    },
+    {
+      "id": 3,
+      "title": "Dips",
+      "completed": false,
+      "editing": false
+    },
+    {
+      "id": 4,
+      "title": "Leg raises",
+      "completed": false,
+      "editing": false
+    }
+  ]
 }
