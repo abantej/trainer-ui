@@ -81,12 +81,8 @@ export default Vue.extend({
     };
   },
   async created() {
-    try {
-      const res = await axios.get(baseUrl);
-      this.workouts = res.data;
-    } catch (e) {
-      console.error(e);
-    }
+    const res = await axios.get(baseUrl);
+    this.workouts = res.data;
   },
   computed: {
     remaining() {
