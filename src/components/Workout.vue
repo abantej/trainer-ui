@@ -65,7 +65,7 @@
 import Vue from 'vue';
 import axios from 'axios';
 
-const baseUrl = 'http://localhost:3000/workouts';
+const baseUrl = 'http://192.168.99.100:3000/workouts';
 
 export default Vue.extend({
   name: 'Workout',

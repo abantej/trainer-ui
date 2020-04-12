@@ -27,12 +27,12 @@ npm run lint
 
 ### Build docker image
 ```
-docker build -t trainer-ui-img .
+docker build -t abantej/trainer-ui-img .
 ```
 
 ### Run docker container
 ```
-docker run -it -p 8080:8080 --rm --name trainer-ui trainer-ui-img
+docker run -it -p 8080:8080 --rm --name trainer-ui abantej/trainer-ui-img
 ```
 
 ### Customize configuration
