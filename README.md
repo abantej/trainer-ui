@@ -25,16 +25,6 @@ npm run test:unit
 npm run lint
 ```
 
-### Install json-server
-```
-npm i json-server
-```
-
-### Run json-server
-```
-jason-server db.json
-```
-
 ### Build docker image
 ```
 docker build -t trainer-ui-img .
